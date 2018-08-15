@@ -10,6 +10,7 @@ class TestSymSpellPy(unittest.TestCase):
     def runTest(self):
         print('\nRunning %s' % self.__class__.__name__)
         self.test_words_with_shared_prefix_should_retain_counts()
+        self.test_words_with_shared_prefix_and_max_distance_dont_retain_counts()
         self.test_add_additional_counts_should_not_add_word_again()
         self.test_add_additional_counts_should_increase_count()
         self.test_add_additional_counts_should_not_overflow()
@@ -21,27 +22,50 @@ class TestSymSpellPy(unittest.TestCase):
         self.test_lookup_should_not_return_low_count_word_that_are_also_delete_word()
         self.test_lookup_should_replicate_noisy_results()
 
-    def test_words_with_shared_prefix_should_retain_counts(self):
+    def test_words_with_shared_prefix_and_max_distance_dont_retain_counts(self):
         print('  - %s' % inspect.stack()[0][3])
         sym_spell = SymSpell(16, 1, 3)
         sym_spell.create_dictionary_entry("pipe", 5)
         sym_spell.create_dictionary_entry("pips", 10)
 
         result = sym_spell.lookup("pipe", Verbosity.ALL, 1)
-        self.assertEqual(2, len(result))
+        self.assertEqual(1, len(result))
         self.assertEqual("pipe", result[0].term)
         self.assertEqual(5, result[0].count)
-        self.assertEqual("pips", result[1].term)
-        self.assertEqual(10, result[1].count)
 
         result = sym_spell.lookup("pips", Verbosity.ALL, 1)
+        self.assertEqual(1, len(result))
+        self.assertEqual("pips", result[0].term)
+        self.assertEqual(10, result[0].count)
+
+        result = sym_spell.lookup("pip", Verbosity.ALL, 1)
         self.assertEqual(2, len(result))
         self.assertEqual("pips", result[0].term)
         self.assertEqual(10, result[0].count)
         self.assertEqual("pipe", result[1].term)
         self.assertEqual(5, result[1].count)
 
-        result = sym_spell.lookup("pip", Verbosity.ALL, 1)
+    def test_words_with_shared_prefix_should_retain_counts(self):
+        print('  - %s' % inspect.stack()[0][3])
+        sym_spell = SymSpell(16, 2, 3)
+        sym_spell.create_dictionary_entry("pipe", 5)
+        sym_spell.create_dictionary_entry("pips", 10)
+
+        result = sym_spell.lookup("pipe", Verbosity.ALL, 2)
+        self.assertEqual(2, len(result))
+        self.assertEqual("pipe", result[0].term)
+        self.assertEqual(5, result[0].count)
+        self.assertEqual("pips", result[1].term)
+        self.assertEqual(10, result[1].count)
+
+        result = sym_spell.lookup("pips", Verbosity.ALL, 2)
+        self.assertEqual(2, len(result))
+        self.assertEqual("pips", result[0].term)
+        self.assertEqual(10, result[0].count)
+        self.assertEqual("pipe", result[1].term)
+        self.assertEqual(5, result[1].count)
+
+        result = sym_spell.lookup("pip", Verbosity.ALL, 2)
         self.assertEqual(2, len(result))
         self.assertEqual("pips", result[0].term)
         self.assertEqual(10, result[0].count)
@@ -96,9 +120,9 @@ class TestSymSpellPy(unittest.TestCase):
         result = sym_spell.lookup("steems", Verbosity.TOP, 2)
         self.assertEqual(1, len(result))
         result = sym_spell.lookup("steems", Verbosity.CLOSEST, 2)
-        self.assertEqual(2, len(result))
+        self.assertEqual(1, len(result))
         result = sym_spell.lookup("steems", Verbosity.ALL, 2)
-        self.assertEqual(3, len(result))
+        self.assertEqual(2, len(result))
 
     def test_lookup_should_return_most_frequent(self):
         print('  - %s' % inspect.stack()[0][3])
@@ -168,7 +192,7 @@ class TestSymSpellPy(unittest.TestCase):
         for phrase in test_list:
             result_sum += len(sym_spell.lookup(phrase, verbosity,
                                                edit_distance_max))
-        self.assertEqual(4880, result_sum)
+        self.assertEqual(2280, result_sum)
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner()

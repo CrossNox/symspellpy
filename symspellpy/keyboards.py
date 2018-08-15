@@ -8,12 +8,14 @@ class KeyboardLayout():
     _weight_matrix = np.diag([_x_weight, _y_weight])
 
     def sustitution_weight(self, a, b):
-        return 1
         pos_a = np.array(type(self)._dictionary_.get(a))
         pos_b = np.array(type(self)._dictionary_.get(b))
-        pos_a = np.dot(KeyboardLayout._weight_matrix, pos_a)
-        pos_b = np.dot(KeyboardLayout._weight_matrix, pos_b)
-        return np.linalg.norm(pos_a - pos_b)
+        try:
+            pos_a = np.dot(KeyboardLayout._weight_matrix, pos_a)
+            pos_b = np.dot(KeyboardLayout._weight_matrix, pos_b)
+            return np.linalg.norm(pos_a - pos_b)
+        except:
+            return 1
 
 
 class SpanishLayout(KeyboardLayout):
