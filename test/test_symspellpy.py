@@ -168,7 +168,7 @@ class TestSymSpellPy(unittest.TestCase):
         for phrase in test_list:
             result_sum += len(sym_spell.lookup(phrase, verbosity,
                                                edit_distance_max))
-        self.assertEqual(4945, result_sum)
+        self.assertEqual(4880, result_sum)
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner()

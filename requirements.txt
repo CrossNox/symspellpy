@@ -2,3 +2,4 @@ codecov
 coverage
 numpy
 pytest-cov
+numpy
