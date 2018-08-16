@@ -8,7 +8,7 @@ setup(
     },
     version='0.9.0',
     description='Keyboard layout aware version of SymSpell',
-    long_description=open('README').read().split("========")[-1],
+    long_description=open('README.md').read().split("========")[-1],
     author='crossnox',
     url='https://github.com/crossnox/symspellpy',
     keywords=['symspellpy'],
