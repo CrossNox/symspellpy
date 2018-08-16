@@ -24,7 +24,7 @@ class Verbosity(Enum):
 class SymSpell(object):
     def __init__(self, initial_capacity=16, max_dictionary_edit_distance=2,
                  prefix_length=7, count_threshold=1, compact_level=5, 
-                 keyboard_layout_aware=False, words = None):
+                 keyboard_layout_aware=None, words = None):
         """Create a new instance of SymSpell.
         Specifying an accurate initial_capacity is not essential, but it can
         help speed up processing by aleviating the need for data
@@ -41,8 +41,8 @@ class SymSpell(object):
                 to be considered correct spellings. (default 1)
         compact_level -- Degree of favoring lower memory use over speed
             (0=fastest,most memory, 16=slowest,least memory). (default 5)
-        keyboard_layout_aware -- If set to True uses a modified version of the Damerau OSA
-            that accounts for the distance between keys in virtual keyboards for
+        keyboard_layout_aware -- If any value from "es", "po" uses a modified version of the Damerau OSA
+            that accounts for the distance between keys in virtual keyboards of that language for
             substitutions and transpositions
         words -- list of words to build the dictionary entries from
         """
@@ -66,7 +66,14 @@ class SymSpell(object):
         self._prefix_length = prefix_length
         self._count_threshold = count_threshold
         self._compact_mask = (0xFFFFFFFF >> (3 + min(compact_level, 16))) << 2
-        self._distance_algorithm = DistanceAlgorithm.DAMERUAUOSA if not keyboard_layout_aware else DistanceAlgorithm.KLADAMERUAUOSA
+        if not keyboard_layout_aware:
+            self._distance_algorithm = DistanceAlgorithm.DAMERUAUOSA
+        elif keyboard_layout_aware == "es":
+            self._distance_algorithm = DistanceAlgorithm.ES_KLADAMERUAUOSA
+        elif keyboard_layout_aware == "po":
+            self._distance_algorithm = DistanceAlgorithm.PO_KLADAMERUAUOSA
+        else:
+            raise ValueError("Invalid option: {}".format(keyboard_layout_aware))
         self._max_length = 0
 
         if words:

@@ -12,8 +12,10 @@ class DistanceAlgorithm(Enum):
     LEVENSHTEIN = 0
     # Damerau optimal string alignment algorithm
     DAMERUAUOSA = 1
-    # Keyboard layout aware Damerau OSA
-    KLADAMERUAUOSA = 2
+    # Spanish keyboard layout aware Damerau OSA
+    ES_KLADAMERUAUOSA = 2
+    # Portuguese keyboard layout aware Damerau OSA
+    PO_KLADAMERUAUOSA = 3
 
 
 class EditDistance(object):
@@ -21,8 +23,10 @@ class EditDistance(object):
         self._algorithm = algorithm
         if algorithm == DistanceAlgorithm.DAMERUAUOSA:
             self._distance_comparer = DamerauOsa()
-        elif algorithm == DistanceAlgorithm.KLADAMERUAUOSA:
-            self._distance_comparer = KLADamerauOsa()
+        elif algorithm == DistanceAlgorithm.ES_KLADAMERUAUOSA:
+            self._distance_comparer = KLADamerauOsa("es")
+        elif algorithm == DistanceAlgorithm.PO_KLADAMERUAUOSA:
+            self._distance_comparer = KLADamerauOsa("po")
         else:
             raise ValueError("Unknown distance algorithm")
 
@@ -187,13 +191,18 @@ class DamerauOsa(AbstractDistanceComparer):
 
 
 class KLADamerauOsa(AbstractDistanceComparer):
-    def __init__(self):
-        self.SL = SpanishLayout()
+    def __init__(self, lang="es"):
+        if lang == "es":
+            self.SL = SpanishLayout()
+        elif lang == "po":
+            self.SL = PortugueseLayout()
+        else:
+            raise NotImplementedError("{} keyboard layout hasn't been implemented yet!".format(lang))
 
     def distance(self, string_1, string_2, max_distance):
         if string_1 is None or string_2 is None:
             return helpers.null_distance_results(string_1, string_2,
-                                         max_distance)
+                                                 max_distance)
         if max_distance <= 0:
             return 0 if string_1 == string_2 else -1
         max_distance = int(min(2 ** 31 - 1, max_distance))

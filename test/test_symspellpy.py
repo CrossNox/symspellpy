@@ -79,7 +79,7 @@ class TestSymSpellPy(unittest.TestCase):
 
     def test_words_with_shared_prefix_should_retain_counts_kla(self):
         print('  - %s' % inspect.stack()[0][3])
-        sym_spell = SymSpell(16, 2, 3, keyboard_layout_aware=True)
+        sym_spell = SymSpell(16, 2, 3, keyboard_layout_aware="es")
         sym_spell.create_dictionary_entry("pipe", 5)
         sym_spell.create_dictionary_entry("pips", 10)
 
