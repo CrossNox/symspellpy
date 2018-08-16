@@ -4,7 +4,7 @@ setup(
     name='symspellpy',
     packages=find_packages(exclude=['test']),
     package_data={
-        'symspellpy': ['README', 'LICENSE']
+        'symspellpy': ['README.md', 'LICENSE']
     },
     version='0.9.0',
     description='Keyboard layout aware version of SymSpell',
