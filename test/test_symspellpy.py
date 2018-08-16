@@ -50,6 +50,33 @@ class TestSymSpellPy(unittest.TestCase):
         self.assertEqual("pipe", result[1].term)
         self.assertEqual(5, result[1].count)
 
+    def test_words_from_list_with_shared_prefix_should_retain_counts(self):
+        print('  - %s' % inspect.stack()[0][3])
+        sym_spell = SymSpell(16, 1, 3, words=["pipe","pipe","pipe","pipe","pipe",
+                                              "pips","pips","pips","pips","pips",
+                                              "pips","pips","pips","pips","pips"])
+
+        result = sym_spell.lookup("pipe", Verbosity.ALL, 1)
+        self.assertEqual(2, len(result))
+        self.assertEqual("pipe", result[0].term)
+        self.assertEqual(5, result[0].count)
+        self.assertEqual("pips", result[1].term)
+        self.assertEqual(10, result[1].count)
+
+        result = sym_spell.lookup("pips", Verbosity.ALL, 1)
+        self.assertEqual(2, len(result))
+        self.assertEqual("pips", result[0].term)
+        self.assertEqual(10, result[0].count)
+        self.assertEqual("pipe", result[1].term)
+        self.assertEqual(5, result[1].count)
+
+        result = sym_spell.lookup("pip", Verbosity.ALL, 1)
+        self.assertEqual(2, len(result))
+        self.assertEqual("pips", result[0].term)
+        self.assertEqual(10, result[0].count)
+        self.assertEqual("pipe", result[1].term)
+        self.assertEqual(5, result[1].count)
+
     def test_words_with_shared_prefix_should_retain_counts_kla(self):
         print('  - %s' % inspect.stack()[0][3])
         sym_spell = SymSpell(16, 2, 3, keyboard_layout_aware=True)

@@ -70,7 +70,7 @@ class SymSpell(object):
         self._max_length = 0
 
         if words:
-            for key, value in helpers.build_entries_dictionary(words):
+            for key, value in helpers.build_entries_dictionary(words).items():
                 self.create_dictionary_entry(key, value)
 
     def create_dictionary_entry(self, key, count):
