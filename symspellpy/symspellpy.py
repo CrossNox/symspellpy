@@ -23,7 +23,8 @@ class Verbosity(Enum):
 
 class SymSpell(object):
     def __init__(self, initial_capacity=16, max_dictionary_edit_distance=2,
-                 prefix_length=7, count_threshold=1, compact_level=5):
+                 prefix_length=7, count_threshold=1, compact_level=5, 
+                 keyboard_layout_aware=False, words = None):
         """Create a new instance of SymSpell.
         Specifying an accurate initial_capacity is not essential, but it can
         help speed up processing by aleviating the need for data
@@ -40,6 +41,10 @@ class SymSpell(object):
                 to be considered correct spellings. (default 1)
         compact_level -- Degree of favoring lower memory use over speed
             (0=fastest,most memory, 16=slowest,least memory). (default 5)
+        keyboard_layout_aware -- If set to True uses a modified version of the Damerau OSA
+            that accounts for the distance between keys in virtual keyboards for
+            substitutions and transpositions
+        words -- list of words to build the dictionary entries from
         """
         if initial_capacity < 0:
             raise ValueError("initial_capacity cannot be negative")
@@ -52,6 +57,7 @@ class SymSpell(object):
             raise ValueError("count_threshold cannot be negative")
         if compact_level < 0 or compact_level > 16:
             raise ValueError("compact_level must be between 0 and 16")
+
         self._initial_capacity = initial_capacity
         self._words = dict()
         self._below_threshold_words = dict()
@@ -60,8 +66,12 @@ class SymSpell(object):
         self._prefix_length = prefix_length
         self._count_threshold = count_threshold
         self._compact_mask = (0xFFFFFFFF >> (3 + min(compact_level, 16))) << 2
-        self._distance_algorithm = DistanceAlgorithm.DAMERUAUOSA
+        self._distance_algorithm = DistanceAlgorithm.DAMERUAUOSA if not keyboard_layout_aware else DistanceAlgorithm.KLADAMERUAUOSA
         self._max_length = 0
+
+        if words:
+            for key, value in helpers.build_entries_dictionary(words):
+                self.create_dictionary_entry(key, value)
 
     def create_dictionary_entry(self, key, count):
         """Create/Update an entry in the dictionary.

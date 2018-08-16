@@ -51,3 +51,11 @@ def parse_words(phrase):
     # Compatible with non-latin characters, does not split words at
     # apostrophes
     return re.findall(r"([^\W_]+['’]*[^\W_]*)", phrase.lower())
+
+def build_entries_dictionary(words):
+    dictionary = {}
+    for word in words:
+        if word not in dictionary:
+            dictionary[word] = 0
+        dictionary[word] += 1
+    return dictionary
