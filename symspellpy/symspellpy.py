@@ -178,6 +178,11 @@ class SymSpell(object):
                     if count is not None:
                         self.create_dictionary_entry(key, count)
 
+    def best(self, phrase, verbosity, max_edit_distance=None,
+               include_unknown=False):
+        res = self.lookup(phrase, verbosity, max_edit_distance, include_unknown)
+        return res[0].term if len(res) > 0 else None
+
     def lookup(self, phrase, verbosity, max_edit_distance=None,
                include_unknown=False):
         """Find suggested spellings for a given phrase word.
