@@ -1,7 +1,5 @@
 from collections import defaultdict
 from enum import Enum
-import functools
-from multiprocessing import Pool
 from os import path
 import re
 import sys
@@ -177,6 +175,7 @@ class SymSpell(object):
                     count = helpers.try_parse_int64(line_parts[count_index])
                     if count is not None:
                         self.create_dictionary_entry(key, count)
+        return True
 
     def best(self, phrase, verbosity, max_edit_distance=None,
                include_unknown=False):
@@ -396,7 +395,8 @@ class SymSpell(object):
             suggestions.sort()
         return suggestions
 
-    def lookup_compound(self, phrase, max_edit_distance):
+    def lookup_compound(self, phrase, max_edit_distance,
+                        ignore_non_words=False):
         """lookup_compound supports compound aware automatic spelling
         correction of multi-word input strings with three cases:
         1. mistakenly inserted space into a correct word led to two incorrect
@@ -419,6 +419,10 @@ class SymSpell(object):
         """
         # Parse input string into single terms
         term_list_1 = helpers.parse_words(phrase)
+        # Second list of single terms with preserved cases so we can ignore
+        # acronyms (all cap words)
+        if ignore_non_words:
+            term_list_2 = helpers.parse_words(phrase, True)
         suggestions = list()
         suggestion_parts = list()
         distance_comparer = EditDistance(self._distance_algorithm)
@@ -427,6 +431,14 @@ class SymSpell(object):
         # unchanged
         is_last_combi = False
         for i, __ in enumerate(term_list_1):
+            if ignore_non_words:
+                if helpers.try_parse_int64(term_list_1[i]) is not None:
+                    suggestion_parts.append(SuggestItem(term_list_1[i], 0, 0))
+                    continue
+                # if re.match(r"\b[A-Z]{2,}\b", term_list_2[i]):
+                if helpers.is_acronym(term_list_2[i]):
+                    suggestion_parts.append(SuggestItem(term_list_2[i], 0, 0))
+                    continue
             suggestions = self.lookup(term_list_1[i], Verbosity.TOP,
                                       max_edit_distance)
             # combi check, always before split
@@ -441,9 +453,12 @@ class SymSpell(object):
                     else:
                         best_2 = SuggestItem(term_list_1[i],
                                              max_edit_distance + 1, 0)
+                    # make sure we're comparing with the lowercase form of the 
+                    # previous word
                     distance_1 = distance_comparer.compare(
                         term_list_1[i - 1] + " " + term_list_1[i],
-                        best_1.term + " " + best_2.term, max_edit_distance)
+                        best_1.term.lower() + " " + best_2.term,
+                        max_edit_distance)
                     if (distance_1 >= 0
                             and suggestions_combi[0].distance + 1 < distance_1):
                         suggestions_combi[0].distance += 1
@@ -515,9 +530,10 @@ class SymSpell(object):
         for si in suggestion_parts:
             joined_term += si.term + " "
             joined_count = min(joined_count, si.count)
-        suggestion = SuggestItem(joined_term.rstrip(), joined_count,
-                                 distance_comparer.compare(phrase, joined_term,
-                                                           2 ** 31 - 1))
+        suggestion = SuggestItem(joined_term.rstrip(),
+                                 distance_comparer.compare(
+                                     phrase, joined_term, 2 ** 31 - 1),
+                                 joined_count)
         suggestions_line = list()
         suggestions_line.append(suggestion)
         return suggestions_line
@@ -619,7 +635,7 @@ class SuggestItem(object):
             return self._distance < other.distance
 
     def __str__(self):
-        return "{}, {}, {}".format(self._term, self._count, self._distance)
+        return "{}, {}, {}".format(self._term, self._distance, self._count)
 
     @property
     def term(self):
