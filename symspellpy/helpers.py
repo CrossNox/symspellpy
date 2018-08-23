@@ -64,3 +64,11 @@ def is_acronym(word):
         abCDe
     """
     return re.match(r"\b[A-Z]{2,}\b", word) is not None
+
+def build_entries_dictionary(words):
+    dictionary = {}
+    for word in words:
+        if word not in dictionary:
+            dictionary[word] = 0
+        dictionary[word] += 1
+    return dictionary
