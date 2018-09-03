@@ -74,7 +74,7 @@ class SymSpell(object):
             raise ValueError("Invalid option: {}".format(keyboard_layout_aware))
         self._max_length = 0
 
-        if words:
+        if words is not None:
             for key, value in helpers.build_entries_dictionary(words).items():
                 self.create_dictionary_entry(key, value)
 
